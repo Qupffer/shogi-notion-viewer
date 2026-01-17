@@ -4,22 +4,20 @@
 const $ = (sel) => document.querySelector(sel);
 
 const elUser = $("#gh-user");
-const elRepo = $("#gh-repo");
-const elBranch = $("#gh-branch");
 const btnLoad = $("#btn-load");
 
 const elBreadcrumb = $("#breadcrumb");
 const elFileList = $("#file-list");
 const elStatus = $("#status");
 
-const elOutput = document.querySelector(".output"); // 3. Embed URL の表示先
-const btnCopy = document.querySelector("button");  // Copyボタン（ページ内で最初のbutton想定）
+const elOutput = $("#embed-url");   // ★固定
+const btnCopy  = $("#btn-copy");    // ★固定
 
 let state = {
   user: "",
-  repo: "",
-  branch: "",
-  path: "kif", // ここが「固定したい場所」(例: kif フォルダ)
+  repo: "shogi-notion-viewer", // ★固定（必要ならここだけ変える）
+  branch: "main",              // ★固定（必要ならここだけ変える）
+  path: "kif",                 // ★固定（kifフォルダから開始）
 };
 
 function setStatus(msg) {
@@ -45,11 +43,9 @@ async function fetchJson(url) {
 }
 
 function renderBreadcrumb() {
-  // 例: kif/先手/相掛かり
   const parts = state.path.split("/").filter(Boolean);
   elBreadcrumb.innerHTML = "";
 
-  // ルート（固定）に戻る
   const rootBtn = document.createElement("button");
   rootBtn.textContent = "root";
   rootBtn.style.marginRight = "8px";
@@ -62,6 +58,7 @@ function renderBreadcrumb() {
   let accum = "kif";
   for (let i = 1; i < parts.length; i++) {
     accum += "/" + parts[i];
+
     const span = document.createElement("span");
     span.textContent = " / ";
     elBreadcrumb.appendChild(span);
@@ -78,7 +75,8 @@ function renderBreadcrumb() {
 }
 
 function isKif(name) {
-  return name.toLowerCase().endsWith(".kif") || name.toLowerCase().endsWith(".kifu");
+  const n = name.toLowerCase();
+  return n.endsWith(".kif") || n.endsWith(".kifu");
 }
 
 function makePagesBaseUrl() {
@@ -87,12 +85,11 @@ function makePagesBaseUrl() {
 }
 
 function makeViewerUrl(kifPath) {
-  // あなたのviewerの入口URLに合わせる：
-  // 例: docs/viewer/index.html があるなら → viewer/index.html
-  // そこに ?kif=... を渡す
+  // viewer/index.html に ?o=&r=&p= を渡す（viewer側がその形式になった前提）
+  // o: owner, r: repo, p: path
   const base = makePagesBaseUrl();
   const viewer = `${base}viewer/index.html`;
-  return `${viewer}?kif=${encodeURIComponent(kifPath)}`;
+  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(state.repo)}&p=${encodeURIComponent(kifPath)}`;
 }
 
 function showEmbedUrl(url) {
@@ -102,10 +99,8 @@ function showEmbedUrl(url) {
 function renderList(items) {
   elFileList.innerHTML = "";
 
-  // フォルダ→ファイルの順に並べる
   const folders = items.filter((x) => x.type === "dir").sort((a, b) => a.name.localeCompare(b.name));
   const files = items.filter((x) => x.type === "file").sort((a, b) => a.name.localeCompare(b.name));
-
   const all = [...folders, ...files];
 
   for (const item of all) {
@@ -126,11 +121,10 @@ function renderList(items) {
 
     if (item.type === "dir") {
       name.onclick = () => {
-        state.path = item.path; // 次の階層へ
+        state.path = item.path;
         loadPath();
       };
     } else {
-      // ファイル
       name.disabled = !isKif(item.name);
       name.title = isKif(item.name) ? "このKIFを選択" : "KIFのみ選択できます";
       name.onclick = () => {
@@ -149,6 +143,7 @@ function renderList(items) {
 async function loadPath() {
   setStatus("読み込み中...");
   renderBreadcrumb();
+
   try {
     const url = buildApiUrl(state.path);
     const json = await fetchJson(url);
@@ -167,32 +162,44 @@ async function loadPath() {
 
 btnLoad?.addEventListener("click", () => {
   state.user = (elUser?.value || "").trim();
-  state.repo = (elRepo?.value || "").trim();
-  state.branch = (elBranch?.value || "").trim() || "main";
 
-  if (!state.user || !state.repo) {
-    setStatus("GitHub username と Repository name は必須です。");
+  if (!state.user) {
+    setStatus("GitHub username は必須です。");
     return;
   }
 
-  // ここが「固定」ポイント：必ず kif/ から始める
   state.path = "kif";
+  showEmbedUrl("ここに Notion 用の URL が表示されます");
   loadPath();
 });
 
 btnCopy?.addEventListener("click", async () => {
   const txt = (elOutput?.textContent || "").trim();
-  if (!txt) {
+  if (!txt || txt.includes("ここに Notion")) {
     setStatus("まだURLがありません。KIFを選んでください。");
     return;
   }
+
   try {
     await navigator.clipboard.writeText(txt);
     setStatus("コピーしました。Notionに貼り付けOK。");
   } catch {
-    setStatus("コピー失敗。手動で選択してコピーしてください。");
+    // フォールバック（互換copy）
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = txt;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setStatus("コピーしました（互換モード）。Notionに貼り付けOK。");
+    } catch {
+      setStatus("コピー失敗。URLをドラッグして手動でコピーしてください。");
+    }
   }
 });
 
-// ページを開いた直後の初期表示
+// 初期表示
 setStatus("GitHub情報を入れて Load Files を押してください。");
