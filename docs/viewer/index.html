@@ -49,8 +49,18 @@
         return;
       }
 
-      const api = `https://api.github.com/repos/${encodeURIComponent(o)}/${encodeURIComponent(r)}/contents/${encodeURIComponent(p).replaceAll("%2F","/")}?ref=${encodeURIComponent(b)}`;
+      function encodePath(path) {
+        return path
+          .split("/")
+          .filter(Boolean)
+          .map(seg => encodeURIComponent(seg))
+          .join("/");
+      }
+      
+      const encodedPath = encodePath(p);
+      const api = `https://api.github.com/repos/${encodeURIComponent(o)}/${encodeURIComponent(r)}/contents/${encodedPath}?ref=${encodeURIComponent(b)}`;
 
+      
       let data;
       try {
         const res = await fetch(api, { headers: { "Accept": "application/vnd.github+json" }});
