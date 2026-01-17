@@ -12,14 +12,14 @@ const elBreadcrumb = $("#breadcrumb");
 const elFileList = $("#file-list");
 const elStatus = $("#status");
 
-const elOutput = $("#embed-url");       // ★IDで固定
-const btnCopy = $("#btn-copy");         // ★IDで固定
+const elOutput = document.querySelector("#embed-url");
+const btnCopy = document.querySelector("#btn-copy");
 
 let state = {
   user: "",
   repo: "",
-  branch: "",
-  path: "kif", // 固定起点
+  branch: "main",
+  path: "kif",
 };
 
 function setStatus(msg) {
@@ -28,9 +28,9 @@ function setStatus(msg) {
 
 function buildApiUrl(path) {
   const p = path ? `/${encodeURIComponent(path).replaceAll("%2F", "/")}` : "";
-  return `https://api.github.com/repos/${encodeURIComponent(state.user)}/${encodeURIComponent(
-    state.repo
-  )}/contents${p}?ref=${encodeURIComponent(state.branch)}`;
+  return `https://api.github.com/repos/${state.user}/${state.repo}/contents${p}?ref=${encodeURIComponent(
+    state.branch
+  )}`;
 }
 
 async function fetchJson(url) {
@@ -48,7 +48,6 @@ function renderBreadcrumb() {
 
   const rootBtn = document.createElement("button");
   rootBtn.textContent = "root";
-  rootBtn.style.marginRight = "8px";
   rootBtn.onclick = () => {
     state.path = "kif";
     loadPath();
@@ -65,7 +64,6 @@ function renderBreadcrumb() {
 
     const b = document.createElement("button");
     b.textContent = parts[i];
-    b.style.marginRight = "8px";
     b.onclick = () => {
       state.path = accum;
       loadPath();
@@ -75,8 +73,7 @@ function renderBreadcrumb() {
 }
 
 function isKif(name) {
-  const lower = name.toLowerCase();
-  return lower.endsWith(".kif") || lower.endsWith(".kifu");
+  return name.toLowerCase().endsWith(".kif") || name.toLowerCase().endsWith(".kifu");
 }
 
 function makePagesBaseUrl() {
@@ -84,19 +81,15 @@ function makePagesBaseUrl() {
 }
 
 function makeViewerUrl(kifPath) {
-  // viewer 側のURLに合わせる（今の構成: /viewer/index.html）
-  // viewer は o/r/p でGitHub APIから読む設計にしてるので、それに合わせる
-  // p は "kif/..." のパス
   const base = makePagesBaseUrl();
   const viewer = `${base}viewer/index.html`;
-  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(
-    state.repo
-  )}&p=${encodeURIComponent(kifPath)}&b=${encodeURIComponent(state.branch)}`;
+  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(state.repo)}&p=${encodeURIComponent(
+    kifPath
+  )}&b=${encodeURIComponent(state.branch)}`;
 }
 
 function showEmbedUrl(url) {
-  if (!elOutput) return;
-  elOutput.textContent = url;
+  if (elOutput) elOutput.textContent = url;
 }
 
 function renderList(items) {
@@ -104,6 +97,7 @@ function renderList(items) {
 
   const folders = items.filter((x) => x.type === "dir").sort((a, b) => a.name.localeCompare(b.name));
   const files = items.filter((x) => x.type === "file").sort((a, b) => a.name.localeCompare(b.name));
+
   const all = [...folders, ...files];
 
   for (const item of all) {
@@ -118,27 +112,27 @@ function renderList(items) {
     icon.textContent = item.type === "dir" ? "📁" : "📄";
     row.appendChild(icon);
 
-    const nameBtn = document.createElement("button");
-    nameBtn.textContent = item.name;
-    nameBtn.style.textAlign = "left";
+    const name = document.createElement("button");
+    name.textContent = item.name;
+    name.style.textAlign = "left";
 
     if (item.type === "dir") {
-      nameBtn.onclick = () => {
+      name.onclick = () => {
         state.path = item.path;
         loadPath();
       };
     } else {
-      nameBtn.disabled = !isKif(item.name);
-      nameBtn.title = isKif(item.name) ? "このKIFを選択" : "KIFのみ選択できます";
-      nameBtn.onclick = () => {
-        const kifPath = item.path; // 例: kif/先手/相掛かり/test.kif
+      name.disabled = !isKif(item.name);
+      name.title = isKif(item.name) ? "このKIFを選択" : "KIFのみ選択できます";
+      name.onclick = () => {
+        const kifPath = item.path;
         const url = makeViewerUrl(kifPath);
         showEmbedUrl(url);
-        setStatus("Embed URL を生成しました。Copyでコピーできます（失敗したら手動コピー）。");
+        setStatus("Embed URL を生成しました。Copyでコピーできます。");
       };
     }
 
-    row.appendChild(nameBtn);
+    row.appendChild(name);
     elFileList.appendChild(row);
   }
 }
@@ -173,50 +167,39 @@ btnLoad?.addEventListener("click", () => {
   }
 
   state.path = "kif";
-  showEmbedUrl("ここに Notion 用の URL が表示されます");
+  showEmbedUrl("");
   loadPath();
 });
 
-// ★コピー：失敗したら「URLを選択状態」にして手動コピー誘導
 btnCopy?.addEventListener("click", async () => {
   const txt = (elOutput?.textContent || "").trim();
-  if (!txt || txt.includes("ここに")) {
+  if (!txt) {
     setStatus("まだURLがありません。KIFを選んでください。");
     return;
   }
 
-  // 1) まず Clipboard API を試す（通れば一発）
   try {
     await navigator.clipboard.writeText(txt);
     setStatus("コピーしました。Notionに貼り付けOK。");
-    return;
-  } catch (e) {
-    // 2) だめなら手動コピーできる形にする（確実）
-  }
-
-  try {
-    // output欄を一時的に選択可能にする
-    const ta = document.createElement("textarea");
-    ta.value = txt;
-    ta.setAttribute("readonly", "true");
-    ta.style.position = "fixed";
-    ta.style.left = "-9999px";
-    ta.style.top = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    ta.setSelectionRange(0, ta.value.length);
-
-    const ok = document.execCommand("copy"); // 古いが通る環境もある
-    document.body.removeChild(ta);
-
-    if (ok) {
-      setStatus("コピーしました（互換モード）。Notionに貼り付けOK。");
-    } else {
-      setStatus("自動コピー不可。上のURLをドラッグしてコピーしてください。");
-    }
   } catch {
-    setStatus("自動コピー不可。上のURLをドラッグしてコピーしてください。");
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = txt;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setStatus("コピーしました（互換モード）。Notionに貼り付けOK。");
+    } catch {
+      setStatus("コピー失敗。URLを手動でコピーしてください。");
+    }
   }
+});
+
+setStatus("GitHub情報を入れて Load Files を押してください。");
+
 });
 
 // 初期表示
