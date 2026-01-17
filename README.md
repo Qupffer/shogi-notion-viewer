@@ -9,7 +9,7 @@ GeneratorでKIFを選ぶ → Embed URL をコピー → Notionに貼る、だけ
 ## できること
 
 - GitHub repo 内の `kif/` フォルダをブラウズ（フォルダ階層OK）
-- `.kif / .kifu` を選ぶと **Notion埋め込み用URL** を生成
+- `.kif ` を選ぶと **Notion埋め込み用URL** を生成
 - URLをコピー（Copyボタン）
 - Notionに埋め込むと将棋盤として表示（viewer）
 
@@ -29,13 +29,13 @@ GeneratorでKIFを選ぶ → Embed URL をコピー → Notionに貼る、だけ
 4. Branch を **main** / Folder を **/docs** にする → Save  
 5. 数十秒〜数分で公開されます（初回は少し時間がかかることがあります）
 
-公開URLはだいたいこうなります：
+公開URLはだいたいこうなります（URL生成ページ）：
 - `https://<あなたのusername>.github.io/shogi-notion-viewer/`
 
 ---
 
-## 3) 盤面生成したいKIFファイルを入力（自分の棋譜保管場所）
-`kif/` 配下に `.kif`を置きます。  （.kifでファイルを作って編集欄にKIF形式をペーストでも可能）
+## 3) 盤面生成したいKIFファイルをアップロード（自分の棋譜保管場所）
+`kif/` 配下に `.kif`をアップロード。  （.kifでファイルを作って編集欄にKIF形式をペーストでも可能）
 例（階層は自由。深くしてもOK）：
 kif/
 先手/
@@ -45,7 +45,7 @@ kif/
 .keep
 
 
-GitHub上でフォルダ作成 → “Add file” → “Create new file” で `.keep` を置くと空フォルダも保持できます。
+ `.keep` は空フォルダも保持用に置いています。
 
 ---
 
@@ -70,19 +70,6 @@ Generatorが作ったURLをNotionに埋め込むと viewer が開きます。
 ## Notionへの埋め込み方法（例）
 - Notionで `/embed` → URLを貼る  
 - もしくは URL を貼って “Embed” を選ぶ
-
----
-
-## よくあるトラブル
-
-### 反映されない / 昨日まで動いてたのに…
-GitHub Pages の反映が遅延・キャッシュされることがあります。
-- すぐ見たい：URL末尾に `?v=1` を付ける（例：`.../?v=2`）
-- もしくは Ctrl+F5（スーパーリロード）
-
-### 404 / 見つからない
-- Pages設定が `main / docs` になっているか確認
-- 公開URLが自分の username になっているか確認（Fork先のURLになります）
 
 ---
 
