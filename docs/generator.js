@@ -1,6 +1,4 @@
 // docs/generator.js
-// 目的: GitHubのリポジトリ内のフォルダ/ファイル一覧を取得して表示し、選んだKIFからEmbed URLを作る
-
 const $ = (sel) => document.querySelector(sel);
 
 const elUser = $("#gh-user");
@@ -12,25 +10,16 @@ const elBreadcrumb = $("#breadcrumb");
 const elFileList = $("#file-list");
 const elStatus = $("#status");
 
-const elOutput = document.querySelector("#embed-url");
-const btnCopy = document.querySelector("#btn-copy");
+const elOutput = $("#embed-url");
+const btnCopy = $("#btn-copy");
 
-let state = {
-  user: "",
-  repo: "",
-  branch: "main",
-  path: "kif",
-};
+let state = { user: "", repo: "", branch: "main", path: "kif" };
 
-function setStatus(msg) {
-  if (elStatus) elStatus.textContent = msg;
-}
+function setStatus(msg) { if (elStatus) elStatus.textContent = msg; }
 
 function buildApiUrl(path) {
   const p = path ? `/${encodeURIComponent(path).replaceAll("%2F", "/")}` : "";
-  return `https://api.github.com/repos/${state.user}/${state.repo}/contents${p}?ref=${encodeURIComponent(
-    state.branch
-  )}`;
+  return `https://api.github.com/repos/${encodeURIComponent(state.user)}/${encodeURIComponent(state.repo)}/contents${p}?ref=${encodeURIComponent(state.branch)}`;
 }
 
 async function fetchJson(url) {
@@ -48,59 +37,50 @@ function renderBreadcrumb() {
 
   const rootBtn = document.createElement("button");
   rootBtn.textContent = "root";
-  rootBtn.onclick = () => {
-    state.path = "kif";
-    loadPath();
-  };
+  rootBtn.onclick = () => { state.path = "kif"; loadPath(); };
   elBreadcrumb.appendChild(rootBtn);
 
   let accum = "kif";
   for (let i = 1; i < parts.length; i++) {
     accum += "/" + parts[i];
-
-    const span = document.createElement("span");
-    span.textContent = " / ";
-    elBreadcrumb.appendChild(span);
+    const sep = document.createElement("span");
+    sep.textContent = " / ";
+    elBreadcrumb.appendChild(sep);
 
     const b = document.createElement("button");
     b.textContent = parts[i];
-    b.onclick = () => {
-      state.path = accum;
-      loadPath();
-    };
+    b.onclick = () => { state.path = accum; loadPath(); };
     elBreadcrumb.appendChild(b);
   }
 }
 
 function isKif(name) {
-  return name.toLowerCase().endsWith(".kif") || name.toLowerCase().endsWith(".kifu");
+  const n = name.toLowerCase();
+  return n.endsWith(".kif") || n.endsWith(".kifu");
 }
 
 function makePagesBaseUrl() {
   return `https://${state.user}.github.io/${state.repo}/`;
 }
 
+// ★viewerは o/r/p/b 形式
 function makeViewerUrl(kifPath) {
   const base = makePagesBaseUrl();
   const viewer = `${base}viewer/index.html`;
-  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(state.repo)}&p=${encodeURIComponent(
-    kifPath
-  )}&b=${encodeURIComponent(state.branch)}`;
+  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(state.repo)}&p=${encodeURIComponent(kifPath)}&b=${encodeURIComponent(state.branch)}`;
 }
 
-function showEmbedUrl(url) {
-  if (elOutput) elOutput.textContent = url;
-}
+function showEmbedUrl(url) { if (elOutput) elOutput.textContent = url; }
 
 function renderList(items) {
   elFileList.innerHTML = "";
 
-  const folders = items.filter((x) => x.type === "dir").sort((a, b) => a.name.localeCompare(b.name));
-  const files = items.filter((x) => x.type === "file").sort((a, b) => a.name.localeCompare(b.name));
+  const folders = items.filter(x => x.type === "dir").sort((a,b)=>a.name.localeCompare(b.name));
+  const files = items.filter(x => x.type === "file").sort((a,b)=>a.name.localeCompare(b.name));
 
-  const all = [...folders, ...files];
+  for (const item of [...folders, ...files]) {
+    if (item.name === ".keep") continue;
 
-  for (const item of all) {
     const row = document.createElement("div");
     row.style.display = "flex";
     row.style.gap = "10px";
@@ -112,27 +92,23 @@ function renderList(items) {
     icon.textContent = item.type === "dir" ? "📁" : "📄";
     row.appendChild(icon);
 
-    const name = document.createElement("button");
-    name.textContent = item.name;
-    name.style.textAlign = "left";
+    const btn = document.createElement("button");
+    btn.textContent = item.name;
 
     if (item.type === "dir") {
-      name.onclick = () => {
-        state.path = item.path;
-        loadPath();
-      };
+      btn.onclick = () => { state.path = item.path; loadPath(); };
     } else {
-      name.disabled = !isKif(item.name);
-      name.title = isKif(item.name) ? "このKIFを選択" : "KIFのみ選択できます";
-      name.onclick = () => {
-        const kifPath = item.path;
-        const url = makeViewerUrl(kifPath);
+      const ok = isKif(item.name);
+      btn.disabled = !ok;
+      btn.title = ok ? "このKIFを選択" : "KIFのみ選択できます";
+      btn.onclick = () => {
+        const url = makeViewerUrl(item.path);
         showEmbedUrl(url);
         setStatus("Embed URL を生成しました。Copyでコピーできます。");
       };
     }
 
-    row.appendChild(name);
+    row.appendChild(btn);
     elFileList.appendChild(row);
   }
 }
@@ -140,19 +116,16 @@ function renderList(items) {
 async function loadPath() {
   setStatus("読み込み中...");
   renderBreadcrumb();
+
   try {
     const url = buildApiUrl(state.path);
     const json = await fetchJson(url);
-
-    if (!Array.isArray(json)) {
-      throw new Error("フォルダではなくファイルを指している可能性があります。");
-    }
-
+    if (!Array.isArray(json)) throw new Error("フォルダではなくファイルを指している可能性があります。");
     renderList(json);
     setStatus("OK");
   } catch (e) {
-    setStatus(`エラー: ${e.message}`);
     elFileList.innerHTML = "";
+    setStatus(`エラー: ${e.message}`);
   }
 }
 
@@ -173,10 +146,7 @@ btnLoad?.addEventListener("click", () => {
 
 btnCopy?.addEventListener("click", async () => {
   const txt = (elOutput?.textContent || "").trim();
-  if (!txt) {
-    setStatus("まだURLがありません。KIFを選んでください。");
-    return;
-  }
+  if (!txt) { setStatus("まだURLがありません。KIFを選んでください。"); return; }
 
   try {
     await navigator.clipboard.writeText(txt);
@@ -197,10 +167,3 @@ btnCopy?.addEventListener("click", async () => {
     }
   }
 });
-
-setStatus("GitHub情報を入れて Load Files を押してください。");
-
-});
-
-// 初期表示
-setStatus("GitHub username を入れて Load Files を押してください。");
