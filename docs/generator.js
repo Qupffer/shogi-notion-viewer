@@ -4,20 +4,22 @@
 const $ = (sel) => document.querySelector(sel);
 
 const elUser = $("#gh-user");
+const elRepo = $("#gh-repo");
+const elBranch = $("#gh-branch");
 const btnLoad = $("#btn-load");
 
 const elBreadcrumb = $("#breadcrumb");
 const elFileList = $("#file-list");
 const elStatus = $("#status");
 
-const elOutput = $("#embed-url");   // ★固定
-const btnCopy  = $("#btn-copy");    // ★固定
+const elOutput = $("#embed-url");       // ★IDで固定
+const btnCopy = $("#btn-copy");         // ★IDで固定
 
 let state = {
   user: "",
-  repo: "shogi-notion-viewer", // ★固定（必要ならここだけ変える）
-  branch: "main",              // ★固定（必要ならここだけ変える）
-  path: "kif",                 // ★固定（kifフォルダから開始）
+  repo: "",
+  branch: "",
+  path: "kif", // 固定起点
 };
 
 function setStatus(msg) {
@@ -25,12 +27,10 @@ function setStatus(msg) {
 }
 
 function buildApiUrl(path) {
-  // GitHub Contents API
-  // https://api.github.com/repos/:owner/:repo/contents/:path?ref=:branch
   const p = path ? `/${encodeURIComponent(path).replaceAll("%2F", "/")}` : "";
-  return `https://api.github.com/repos/${state.user}/${state.repo}/contents${p}?ref=${encodeURIComponent(
-    state.branch
-  )}`;
+  return `https://api.github.com/repos/${encodeURIComponent(state.user)}/${encodeURIComponent(
+    state.repo
+  )}/contents${p}?ref=${encodeURIComponent(state.branch)}`;
 }
 
 async function fetchJson(url) {
@@ -75,25 +75,28 @@ function renderBreadcrumb() {
 }
 
 function isKif(name) {
-  const n = name.toLowerCase();
-  return n.endsWith(".kif") || n.endsWith(".kifu");
+  const lower = name.toLowerCase();
+  return lower.endsWith(".kif") || lower.endsWith(".kifu");
 }
 
 function makePagesBaseUrl() {
-  // GitHub Pages: https://{user}.github.io/{repo}/
   return `https://${state.user}.github.io/${state.repo}/`;
 }
 
 function makeViewerUrl(kifPath) {
-  // viewer/index.html に ?o=&r=&p= を渡す（viewer側がその形式になった前提）
-  // o: owner, r: repo, p: path
+  // viewer 側のURLに合わせる（今の構成: /viewer/index.html）
+  // viewer は o/r/p でGitHub APIから読む設計にしてるので、それに合わせる
+  // p は "kif/..." のパス
   const base = makePagesBaseUrl();
   const viewer = `${base}viewer/index.html`;
-  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(state.repo)}&p=${encodeURIComponent(kifPath)}`;
+  return `${viewer}?o=${encodeURIComponent(state.user)}&r=${encodeURIComponent(
+    state.repo
+  )}&p=${encodeURIComponent(kifPath)}&b=${encodeURIComponent(state.branch)}`;
 }
 
 function showEmbedUrl(url) {
-  if (elOutput) elOutput.textContent = url;
+  if (!elOutput) return;
+  elOutput.textContent = url;
 }
 
 function renderList(items) {
@@ -115,27 +118,27 @@ function renderList(items) {
     icon.textContent = item.type === "dir" ? "📁" : "📄";
     row.appendChild(icon);
 
-    const name = document.createElement("button");
-    name.textContent = item.name;
-    name.style.textAlign = "left";
+    const nameBtn = document.createElement("button");
+    nameBtn.textContent = item.name;
+    nameBtn.style.textAlign = "left";
 
     if (item.type === "dir") {
-      name.onclick = () => {
+      nameBtn.onclick = () => {
         state.path = item.path;
         loadPath();
       };
     } else {
-      name.disabled = !isKif(item.name);
-      name.title = isKif(item.name) ? "このKIFを選択" : "KIFのみ選択できます";
-      name.onclick = () => {
-        const kifPath = item.path; // 例: kif/先手/相掛かり/a.kif
+      nameBtn.disabled = !isKif(item.name);
+      nameBtn.title = isKif(item.name) ? "このKIFを選択" : "KIFのみ選択できます";
+      nameBtn.onclick = () => {
+        const kifPath = item.path; // 例: kif/先手/相掛かり/test.kif
         const url = makeViewerUrl(kifPath);
         showEmbedUrl(url);
-        setStatus("Embed URL を生成しました。Copyでコピーできます。");
+        setStatus("Embed URL を生成しました。Copyでコピーできます（失敗したら手動コピー）。");
       };
     }
 
-    row.appendChild(name);
+    row.appendChild(nameBtn);
     elFileList.appendChild(row);
   }
 }
@@ -143,7 +146,6 @@ function renderList(items) {
 async function loadPath() {
   setStatus("読み込み中...");
   renderBreadcrumb();
-
   try {
     const url = buildApiUrl(state.path);
     const json = await fetchJson(url);
@@ -162,9 +164,11 @@ async function loadPath() {
 
 btnLoad?.addEventListener("click", () => {
   state.user = (elUser?.value || "").trim();
+  state.repo = (elRepo?.value || "").trim();
+  state.branch = (elBranch?.value || "").trim() || "main";
 
-  if (!state.user) {
-    setStatus("GitHub username は必須です。");
+  if (!state.user || !state.repo) {
+    setStatus("GitHub username と Repository name は必須です。");
     return;
   }
 
@@ -173,33 +177,47 @@ btnLoad?.addEventListener("click", () => {
   loadPath();
 });
 
+// ★コピー：失敗したら「URLを選択状態」にして手動コピー誘導
 btnCopy?.addEventListener("click", async () => {
   const txt = (elOutput?.textContent || "").trim();
-  if (!txt || txt.includes("ここに Notion")) {
+  if (!txt || txt.includes("ここに")) {
     setStatus("まだURLがありません。KIFを選んでください。");
     return;
   }
 
+  // 1) まず Clipboard API を試す（通れば一発）
   try {
     await navigator.clipboard.writeText(txt);
     setStatus("コピーしました。Notionに貼り付けOK。");
-  } catch {
-    // フォールバック（互換copy）
-    try {
-      const ta = document.createElement("textarea");
-      ta.value = txt;
-      ta.style.position = "fixed";
-      ta.style.left = "-9999px";
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
+    return;
+  } catch (e) {
+    // 2) だめなら手動コピーできる形にする（確実）
+  }
+
+  try {
+    // output欄を一時的に選択可能にする
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.setAttribute("readonly", "true");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.top = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+
+    const ok = document.execCommand("copy"); // 古いが通る環境もある
+    document.body.removeChild(ta);
+
+    if (ok) {
       setStatus("コピーしました（互換モード）。Notionに貼り付けOK。");
-    } catch {
-      setStatus("コピー失敗。URLをドラッグして手動でコピーしてください。");
+    } else {
+      setStatus("自動コピー不可。上のURLをドラッグしてコピーしてください。");
     }
+  } catch {
+    setStatus("自動コピー不可。上のURLをドラッグしてコピーしてください。");
   }
 });
 
 // 初期表示
-setStatus("GitHub情報を入れて Load Files を押してください。");
+setStatus("GitHub username を入れて Load Files を押してください。");
