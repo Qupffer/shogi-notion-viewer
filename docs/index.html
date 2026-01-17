@@ -3,56 +3,43 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Shogi Notion Viewer – Generator</title>
+  <title>Shogi Notion Viewer - Generator</title>
   <style>
     body { font-family: system-ui, sans-serif; background:#f7f7f7; margin:0; padding:20px; }
-    h1 { margin:0 0 16px; }
-    .box { background:#fff; border-radius:12px; padding:18px; margin:14px 0; box-shadow:0 1px 6px rgba(0,0,0,0.06); }
-    input { width:100%; padding:10px 12px; font-size:16px; margin:8px 0; box-sizing:border-box; }
-    button { padding:10px 14px; font-size:16px; cursor:pointer; }
-    .list { border:1px solid #ddd; border-radius:10px; padding:12px; min-height:220px; background:#fff; }
-    #breadcrumb button { padding:6px 10px; font-size:14px; }
-    #file-list button { padding:6px 10px; font-size:14px; }
+    .box { background:#fff; border-radius:12px; padding:18px; margin:14px 0; box-shadow:0 1px 6px rgba(0,0,0,.08); }
+    input { width: min(520px, 100%); padding:10px 12px; font-size:16px; border:1px solid #ccc; border-radius:8px; margin:6px 0; }
+    button { padding:10px 14px; font-size:16px; border:1px solid #aaa; background:#fff; border-radius:8px; cursor:pointer; }
+    .list { border:1px solid #ddd; border-radius:10px; padding:10px; background:#fff; }
+    #status { margin-top:8px; color:#444; white-space:pre-wrap; }
+    #breadcrumb button { margin: 0 6px 6px 0; }
     .output { border:1px solid #ddd; border-radius:10px; padding:12px; background:#fafafa; word-break:break-all; min-height:44px; margin:8px 0; }
-    #status { margin-top:8px; color:#333; white-space:pre-wrap; }
-    .note { font-size:13px; color:#555; margin-top:6px; }
   </style>
 </head>
-
 <body>
-  <h1>Shogi Notion Viewer – Generator</h1>
 
   <div class="box">
-    <h3>1. GitHub Repository</h3>
-
-    <!-- ★ここを generator.js の querySelector と一致させる -->
+    <h3>1. GitHub</h3>
     <input id="gh-user" placeholder="GitHub username (例: Qupffer)" />
-
-    <!-- ★repo/branch を「表示したまま」(固定値) にする -->
     <input id="gh-repo" placeholder="Repository name (例: shogi-notion-viewer)" />
-    <input id="gh-branch" value="main" readonly />
-
+    <input id="gh-branch" value="main" />
     <button id="btn-load" type="button">Load Files</button>
-    <div class="note">repo と branch は固定です（編集不要）。</div>
+    <div id="status">GitHub情報を入れて Load Files を押してください。</div>
   </div>
 
   <div class="box">
     <h3>2. Folder / File</h3>
     <div class="list">
       <div id="breadcrumb"></div>
-      <div id="file-list">GitHub情報を入れて Load Files を押してください。</div>
-      <div id="status"></div>
+      <div id="file-list"></div>
     </div>
   </div>
 
   <div class="box">
     <h3>3. Embed URL</h3>
     <div id="embed-url" class="output">ここに Notion 用の URL が表示されます</div>
-    <!-- ★Copyボタンは必ず id で取る（複数ボタン事故防止） -->
     <button id="btn-copy" type="button">Copy</button>
   </div>
 
-  <!-- ★パスは docs/ 内なので ./generator.js でOK -->
   <script src="./generator.js"></script>
 </body>
 </html>
