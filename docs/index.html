@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>Shogi KIF Generator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shogi Notion Viewer – Generator</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -10,90 +11,82 @@
       margin: 0;
       padding: 20px;
     }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
+    h1 { margin: 0 0 16px; }
     .box {
       background: #fff;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 14px 0;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
     }
-
     input {
       width: 100%;
-      padding: 8px;
-      margin: 6px 0;
-      font-size: 14px;
+      padding: 10px 12px;
+      font-size: 16px;
+      margin: 8px 0;
+      box-sizing: border-box;
     }
-
     button {
-      padding: 8px 12px;
-      font-size: 14px;
+      padding: 10px 14px;
+      font-size: 16px;
       cursor: pointer;
     }
-
     .list {
       border: 1px solid #ddd;
-      padding: 10px;
-      min-height: 120px;
-      background: #fafafa;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 220px;
+      background: #fff;
     }
-
+    #breadcrumb button {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+    #file-list button {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
     .output {
-      font-family: monospace;
-      background: #eee;
-      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafafa;
       word-break: break-all;
+      min-height: 44px;
+      margin: 8px 0;
+    }
+    #status {
+      margin-top: 8px;
+      color: #333;
+      white-space: pre-wrap;
     }
   </style>
 </head>
-<body>
 
+<body>
   <h1>Shogi Notion Viewer – Generator</h1>
 
-
-    <div class="box">
-      <h3>1. GitHub Repository</h3>
-    
-      <input id="gh-user" placeholder="GitHub username (例: Qupffer)">
-      <input id="gh-repo" value="shogi-notion-viewer" readonly>
-      <input id="gh-branch" value="main" readonly>
-    
-      <button id="btn-load">Load Files</button>
-    </div>
-
-
-    </div>
-    
-    <div class="box">
-      <h3>2. Folder / File</h3>
-      <div class="list">
-        <div id="breadcrumb"></div>
-        <div id="file-list"></div>
-        <div id="status"></div>
-      </div>
-    </div>
-    
-    <div class="box">
-      <div class="box">
-  <h3>3. Embed URL</h3>
-
-  <div id="embed-url" class="output">
-    ここに Notion 用の URL が表示されます
+  <div class="box">
+    <h3>1. GitHub Username</h3>
+    <input id="gh-user" placeholder="GitHub username (例: Qupffer)" />
+    <button id="btn-load" type="button">Load Files</button>
   </div>
 
-  <button id="btn-copy" type="button">Copy</button>
-  <div id="copy-msg" style="margin-top:8px; font-size:14px;"></div>
-</div>
-
+  <div class="box">
+    <h3>2. Folder / File</h3>
+    <div class="list">
+      <div id="breadcrumb"></div>
+      <div id="file-list">GitHub情報を入れて Load Files を押してください。</div>
+      <div id="status"></div>
     </div>
-    
-    <script src="./generator.js"></script>
+  </div>
 
+  <div class="box">
+    <h3>3. Embed URL</h3>
+    <div id="embed-url" class="output">ここに Notion 用の URL が表示されます</div>
+    <button id="btn-copy" type="button">Copy</button>
+  </div>
+
+  <script src="./generator.js"></script>
 </body>
 </html>
-
