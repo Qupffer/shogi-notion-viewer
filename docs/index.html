@@ -55,35 +55,32 @@
 
   <h1>Shogi Notion Viewer – Generator</h1>
 
-  <div class="box">
-    <h3>1. GitHub Repository</h3>
-
-    <input id="gh-user" placeholder="GitHub username">
-    <input id="gh-repo" placeholder="Repository name">
-    <input id="gh-branch" placeholder="Branch">
-
-<button id="btn-load">Load Files</button>
-
-  </div>
-
-  <div class="box">
-    <h3>2. Folder / File</h3>
-    <div class="list">
-    <div id="breadcrumb"></div>
-    <div id="file-list"></div>
-    <div id="status"></div>
-
+    <div class="box">
+      <h3>1. GitHub Username</h3>
+    
+      <input id="gh-user" placeholder="GitHub username (例: Qupffer)">
+      <button id="btn-load">Load Files</button>
     </div>
-  </div>
-
-  <div class="box">
-    <h3>3. Embed URL</h3>
-    <div class="output">
-      ここに Notion 用の URL が表示される予定
+    
+    <div class="box">
+      <h3>2. Folder / File</h3>
+      <div class="list">
+        <div id="breadcrumb"></div>
+        <div id="file-list"></div>
+        <div id="status"></div>
+      </div>
     </div>
-    <button>Copy</button>
-  </div>
-  <script src="./generator.js"></script>
+    
+    <div class="box">
+      <h3>3. Embed URL</h3>
+      <div class="output" id="embed-output">
+        ここに Notion 用の URL が表示されます
+      </div>
+      <button id="btn-copy">Copy</button>
+    </div>
+    
+    <script src="./generator.js"></script>
+
 </body>
 </html>
 
