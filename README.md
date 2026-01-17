@@ -15,26 +15,28 @@ GeneratorでKIFを選ぶ → Embed URL をコピー → Notionに貼る、だけ
 
 ---
 
-## 使い方（最短）
 
-### 1) Fork（自分用リポジトリを作る）
-1. このリポジトリ右上の **Fork** を押す  
-2. 自分のアカウント配下に `shogi-notion-viewer` を作る  
-   - repo名は基本そのまま推奨（変更しても動くけどURLが変わる）
+## 使い方（Forkしないで使う方法・推奨）
 
-### 2) GitHub Pages をONにする（重要）
-1. Forkした自分のリポジトリ → **Settings**  
-2. 左メニュー **Pages**  
-3. **Build and deployment** → Source を **Deploy from a branch**  
-4. Branch を **main** / Folder を **/docs** にする → Save  
-5. 数十秒〜数分で公開されます（初回は少し時間がかかることがあります）
+このリポジトリは **Forkせず** に、ZIPで使ってください。
+
+### 手順
+
+1. 右上の「Code」→「Download ZIP」
+2. ZIPを解凍
+3. GitHubで「New repository」を作成
+4. 解凍した中身をそのままアップロード
+5. GitHub Pages を `main / docs` に設定
+
+これで自分専用の将棋ビューアが完成します。
+
 
 公開URLはだいたいこうなります（URL生成ページ）：
 - `https://<あなたのusername>.github.io/shogi-notion-viewer/`
 
 ---
 
-## 3) 盤面生成したいKIFファイルをアップロード（自分の棋譜保管場所）
+## 1) 盤面生成したいKIFファイルをアップロード（自分の棋譜保管場所）
 `kif/` 配下に `.kif`をアップロード。  （.kifでファイルを作って編集欄にKIF形式をペーストでも可能）
 
 例（階層は自由。深くしてもOK）：
@@ -50,7 +52,7 @@ kif/
 
 ---
 
-## 4) GeneratorでURL生成 → Notionに貼る
+## 2) GeneratorでURL生成 → Notionに貼る
 
 ### Generator（URLを作るページ）
 - `https://<あなたのusername>.github.io/shogi-notion-viewer/`  
