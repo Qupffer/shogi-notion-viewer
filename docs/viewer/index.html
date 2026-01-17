@@ -7,40 +7,77 @@
   <style>body{margin:0}</style>
 </head>
 <body>
-  <shogi-time id="viewer" controller="none"></shogi-time>
+  <div id="root"></div>
 
   <script src="../shogi-time.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
-    const o = params.get("o");      // owner
-    const r = params.get("r");      // repo
-    const b = params.get("b") || "main"; // branch
-    const p = params.get("p");      // path (kif/..../file.kif)
+    const o = params.get("o");                 // owner
+    const r = params.get("r");                 // repo
+    const b = params.get("b") || "main";       // branch
+    const p = params.get("p");                 // path: kif/.../file.kif
 
-    const el = document.getElementById("viewer");
+    const root = document.getElementById("root");
 
     function show(msg){
-      document.body.innerHTML = `<p style="padding:12px">${msg}</p>`;
+      root.innerHTML = `<p style="padding:12px">${msg}</p>`;
     }
 
-    if (!o || !r || !p) {
-      show("URLパラメータが足りません： ?o=...&r=...&p=... （bは省略可）");
-    } else {
+    function b64ToBytes(b64){
+      const bin = atob(b64.replace(/\n/g, ""));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return bytes;
+    }
+
+    function decodeKif(bytes){
+      // まずUTF-8を試し、ダメそうならShift-JIS
+      try {
+        const t = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+        // KIFっぽい目印があればUTF-8採用
+        if (t.includes("\n") && (t.includes("手合割") || t.includes("先手") || t.includes("後手") || t.includes("手数"))) {
+          return t;
+        }
+      } catch {}
+      // Shift-JISで読む（.kifはSJISが多い）
+      return new TextDecoder("shift-jis").decode(bytes);
+    }
+
+    async function main(){
+      if (!o || !r || !p) {
+        show("URLパラメータ不足：?o=...&r=...&p=...（bは省略可）");
+        return;
+      }
+
       const api = `https://api.github.com/repos/${encodeURIComponent(o)}/${encodeURIComponent(r)}/contents/${encodeURIComponent(p).replaceAll("%2F","/")}?ref=${encodeURIComponent(b)}`;
 
-      fetch(api, { headers: { "Accept": "application/vnd.github+json" } })
-        .then(res => res.ok ? res.json() : res.text().then(t => Promise.reject(new Error(t || res.statusText))))
-        .then(data => {
-          if (!data || !data.content) throw new Error("GitHub APIから棋譜を取得できませんでした");
-          // GitHub Contents APIはbase64で返す
-          const kifText = atob(data.content.replace(/\n/g, ""));
-          // shogi-time.js は「改行が含まれる」= 本文として扱うのでURL fetchしない
-          el.setAttribute("kif", kifText);
-        })
-        .catch(err => {
-          show("読み込み失敗: " + (err.message || err));
-        });
+      let data;
+      try {
+        const res = await fetch(api, { headers: { "Accept": "application/vnd.github+json" }});
+        if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+        data = await res.json();
+      } catch (e) {
+        show("GitHubから取得できませんでした：" + (e.message || e));
+        return;
+      }
+
+      if (!data || !data.content) {
+        show("棋譜データが見つかりません（pathが違う可能性）");
+        return;
+      }
+
+      const bytes = b64ToBytes(data.content);
+      const kifText = decodeKif(bytes);
+
+      // ★ここが重要：kifTextを用意してから要素を生成して挿入する
+      root.innerHTML = "";
+      const el = document.createElement("shogi-time");
+      el.setAttribute("controller", "none");
+      el.setAttribute("kif", kifText); // 改行を含む＝本文扱いで解析される
+      root.appendChild(el);
     }
+
+    main();
   </script>
 </body>
 </html>
