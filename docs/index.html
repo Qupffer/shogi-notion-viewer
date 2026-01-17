@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shogi KIF Generator</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .list {
+      border: 1px solid #ddd;
+      padding: 10px;
+      min-height: 120px;
+      background: #fafafa;
+    }
+
+    .output {
+      font-family: monospace;
+      background: #eee;
+      padding: 10px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Shogi Notion Viewer – Generator</h1>
+
+  <div class="box">
+    <h3>1. GitHub Repository</h3>
+    <input placeholder="GitHub username (例: Qupffer)" />
+    <input placeholder="Repository name (例: shogi-notion-viewer)" />
+    <input placeholder="Branch (例: main)" />
+    <button>Load Files</button>
+  </div>
+
+  <div class="box">
+    <h3>2. Folder / File</h3>
+    <div class="list">
+      ここにフォルダやKIFファイルが表示される予定
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>3. Embed URL</h3>
+    <div class="output">
+      ここに Notion 用の URL が表示される予定
+    </div>
+    <button>Copy</button>
+  </div>
+
+</body>
+</html>
 
