@@ -4,17 +4,43 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Shogi Viewer</title>
-  <style>
-    body { margin: 0; }
-  </style>
+  <style>body{margin:0}</style>
 </head>
 <body>
-  <shogi-time id="v" controller="none"></shogi-time>
-  <script src="../shogi-time.js"></script>
+  <shogi-time id="viewer" controller="none"></shogi-time>
 
+  <script src="../shogi-time.js"></script>
   <script>
-    // 今日は“表示の土台”だけ。棋譜の読み込みは次のステップで入れる。
-    // ここが表示されればOK。
+    const params = new URLSearchParams(location.search);
+    const o = params.get("o");      // owner
+    const r = params.get("r");      // repo
+    const b = params.get("b") || "main"; // branch
+    const p = params.get("p");      // path (kif/..../file.kif)
+
+    const el = document.getElementById("viewer");
+
+    function show(msg){
+      document.body.innerHTML = `<p style="padding:12px">${msg}</p>`;
+    }
+
+    if (!o || !r || !p) {
+      show("URLパラメータが足りません： ?o=...&r=...&p=... （bは省略可）");
+    } else {
+      const api = `https://api.github.com/repos/${encodeURIComponent(o)}/${encodeURIComponent(r)}/contents/${encodeURIComponent(p).replaceAll("%2F","/")}?ref=${encodeURIComponent(b)}`;
+
+      fetch(api, { headers: { "Accept": "application/vnd.github+json" } })
+        .then(res => res.ok ? res.json() : res.text().then(t => Promise.reject(new Error(t || res.statusText))))
+        .then(data => {
+          if (!data || !data.content) throw new Error("GitHub APIから棋譜を取得できませんでした");
+          // GitHub Contents APIはbase64で返す
+          const kifText = atob(data.content.replace(/\n/g, ""));
+          // shogi-time.js は「改行が含まれる」= 本文として扱うのでURL fetchしない
+          el.setAttribute("kif", kifText);
+        })
+        .catch(err => {
+          show("読み込み失敗: " + (err.message || err));
+        });
+    }
   </script>
 </body>
 </html>
