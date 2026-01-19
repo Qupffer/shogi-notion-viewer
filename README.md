@@ -78,7 +78,7 @@ Generatorが作ったURLをNotionに埋め込むと viewer が開きます。
 
 ---
 
-## Notionへの埋め込み方法（例）
+## Notionへの埋め込み方法
 - Notionで `/embed` → URLを貼る  
 - もしくは URL を貼って “Embed” を選ぶ
 
@@ -88,6 +88,7 @@ Generatorが作ったURLをNotionに埋め込むと viewer が開きます。
 このリポジトリは MIT License です（`LICENSE` を参照）。
 
 ---
+
 ## クレジット
 
 本プロジェクトでは、worldace 氏が開発した将棋棋譜ビューア  
