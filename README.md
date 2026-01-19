@@ -88,8 +88,25 @@ Generatorが作ったURLをNotionに埋め込むと viewer が開きます。
 このリポジトリは MIT License です（`LICENSE` を参照）。
 
 ---
-## 開発者向けメモ（任意）
-- Generator: `docs/index.html` + `docs/generator.js`
-- Viewer: `docs/viewer/index.html` + `docs/viewer/viewer.js`（など）
-- KIF置き場: `kif/`（固定）
+## クレジット
+
+本プロジェクトでは、worldace 氏が開発した将棋棋譜ビューア  
+**shogitime** を使用しています。
+
+GitHub:  
+https://github.com/worldace/shogitime
+
+shogitime はパブリックドメインとして公開されており、自由に利用できます。
+
+使用素材・参考資料:
+
+- 画像: 将棋アプリ用クリエイティブコモンズ画像  
+  http://mucho.girly.jp/bona/
+
+- 効果音: Kenney  
+  http://www.kenney.nl/
+
+- KIF形式仕様:  
+  http://kakinoki.o.oo7.jp/kif_format.html
+
 
