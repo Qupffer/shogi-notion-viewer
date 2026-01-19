@@ -68,12 +68,12 @@ kif/
 ## 2) GeneratorでURL生成 → Notionに貼る
 
 ### Generator（URLを作るページ）
-- `https://<あなたのusername>.github.io/shogi-notion-viewer/`  
+- `https://<あなたのユーザー名>.github.io/<あなたが設定したリポジトリ名>/`  
   （ここが Generator です）
 
 手順：
-1. **GitHub Username** に自分のユーザー名を入力
-2. 
+1. **GitHub Username** に「あなたのユーザー名」を入力
+2. **Repository name** に「あなたが設定したリポジトリ名」を入力
 3. **Load Files**
 4. `kif/` の中を辿ってKIFをクリック
 5. **Embed URL** が出る → **Copy**
