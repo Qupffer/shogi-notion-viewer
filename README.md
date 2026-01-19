@@ -20,6 +20,7 @@ GeneratorでKIFを選ぶ → Embed URL をコピー → Notionに貼る、だけ
 Notionに埋め込みとして使用する都合上、Web上に公開されていなければなりません。  
 「無料で使える」と「ストレージと使用制限回数を気にしなくていい」を優先しているため、GitHub Pagesを使用しています。  
 つまり、`kif/` に置いた棋譜は基本「誰でも見られる」可能性があります。  
+見られにくくする対策は、次章の「使い方（Forkしないで使う方法・推奨）」に記載しています。  
 
 - 非公開にしたい棋譜は置かない
 - 個人情報を含む棋譜やメモは避ける  
@@ -44,7 +45,7 @@ Notionに埋め込みとして使用する都合上、Web上に公開されて�
 
 
 公開URLはだいたいこうなります（URL生成ページ）：
-- `https://<あなたのusername>.github.io/shogi-notion-viewer/`
+- `https://<あなたのusername>.github.io/<あなたが設定したリポジトリ名>/`
 
 ---
 
@@ -72,9 +73,10 @@ kif/
 
 手順：
 1. **GitHub Username** に自分のユーザー名を入力
-2. **Load Files**
-3. `kif/` の中を辿ってKIFをクリック
-4. **Embed URL** が出る → **Copy**
+2. 
+3. **Load Files**
+4. `kif/` の中を辿ってKIFをクリック
+5. **Embed URL** が出る → **Copy**
 
 ### Viewer（棋譜を表示するページ）
 Generatorが作ったURLをNotionに埋め込むと viewer が開きます。  
